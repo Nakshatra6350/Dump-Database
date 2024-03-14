@@ -5,7 +5,7 @@ let connections = [];
 
 async function fetchHostUserPassword(objectId) {
   const uri =
-    "INSERT_YOUR_MONGO_URI_HERE";
+    "your_mongodb_uri";
   const client = new MongoClient(uri);
 
   try {
