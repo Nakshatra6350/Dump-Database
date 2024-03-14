@@ -11,7 +11,7 @@ if (!fs.existsSync(dir)) {
 }
 
 cron.schedule(
-  "* * * * *",
+  "0 0 * * *",
   async () => {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
