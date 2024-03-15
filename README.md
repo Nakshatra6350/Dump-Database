@@ -1,5 +1,5 @@
 MySQL Database Backup Automation
-This Node.js script automates the backup of MySQL databases using mysqldump and node-cron. It creates a new backup folder for each backup containing the database dumps.
+This Node.js script automates the backup of MySQL databases using mysqldump and node-cron. It creates a new backup folder for each backup containing the database dumps for 7 days and on 8 day the folder which is created on day 1 will be automatically deleted so that you will have backup of last 7 days and this process goes on and on and on.
 
 Prerequisites
 1. Node.js installed on your machine
