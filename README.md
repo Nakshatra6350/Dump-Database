@@ -10,6 +10,8 @@ Usage
 1. The script will run every day at 12:00 AM (00:00 IST) and create a new backup folder for each database backup.
 
 Note
-1. Update your MongoDB URI in data.js file: Replace "your-mongodb-uri" with your actual MongoDB URI.
-2. Install necessary packages: Make sure to install all necessary packages by running npm install.
-3. Change your scheduling by changing the cron expression ("0 0 * * *"): Modify the cron expression in index.js to change the backup scheduling.
+1. Update your MongoDB URI in .env file: Replace "your_mongodb_uri" with your actual MongoDB URI.
+2. Update your Database name in .env file: Replace "your_db_name" with your actual MongoDB URI.
+3. Update your Collection name in .env file: Replace "your_collection_name" with your actual MongoDB URI.
+4. Install necessary packages: Make sure to install all necessary packages by running npm install.
+5. Change your scheduling by changing the cron expression ("0 0 * * *"): Modify the cron expression in index.js to change the backup scheduling.
