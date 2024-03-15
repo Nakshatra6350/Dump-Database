@@ -71,7 +71,7 @@ cron.schedule(
 
     async function deleteFolder() {
       const dumpFolder = await fs.promises.readdir(dir);
-      if (dumpFolder.length > 4) {
+      if (dumpFolder.length > 7) {
         const oldestFolder = dumpFolder[0];
         const oldestFolderPath = path.join(dir, oldestFolder);
         await fs.promises.rm(oldestFolderPath, { recursive: true });
