@@ -4,24 +4,24 @@ const cron = require("node-cron");
 const fs = require("fs");
 const path = require("path");
 const fetchHostUserPassword = require("./data.js");
-
-const dir = "./databaseDumps";
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir);
-}
+const getObjectId = require("./dbConnection.js");
+const {
+  databaseDir,
+  successLogFunc,
+  errorLogFunc,
+} = require("./directories.js");
+const getFolderPath = require("./dateAndTime.js");
 
 cron.schedule(
-  "0 0 * * *",
+  "* * * * *",
   async () => {
-    const currentDate = new Date();
-    const year = currentDate.getFullYear();
-    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
-    const day = String(currentDate.getDate()).padStart(2, "0");
-    const dateFolderName = `${year}-${month}-${day}`;
-    const time = `${currentDate.getHours()}-${currentDate.getMinutes()}-${
-      currentDate.getSeconds
-    }`;
-    const folderPath = `${dir}/dump_${dateFolderName}_${time}`;
+    const dir = databaseDir();
+    const successLog = successLogFunc();
+    const errorLog = errorLogFunc();
+    const objectIds = await getObjectId();
+
+    const time = getFolderPath();
+    const folderPath = `${dir}/${time}`;
 
     async function dumpData(connectionObj) {
       const connection = await mysql.createConnection({
@@ -32,12 +32,14 @@ cron.schedule(
       });
 
       try {
-        console.log(`Connected to MySQL database ${connectionObj.dbName}`);
-
         if (!fs.existsSync(folderPath)) {
           fs.mkdirSync(folderPath);
-          console.log(`Folder created: ${folderPath}`);
+          console.log(`Database folder created: ${folderPath}`);
         }
+        fs.appendFileSync(
+          successLog,
+          `Connection to ${connectionObj.dbName} successfull\n`
+        );
 
         await mysqldump({
           connection: {
@@ -49,9 +51,19 @@ cron.schedule(
           dumpToFile: `${folderPath}/${connectionObj.host}_${connectionObj.dbName}.sql`,
         });
 
-        console.log(`Database ${connectionObj.dbName} dumped successfully`);
+        fs.appendFileSync(
+          successLog,
+          `Database ${connectionObj.dbName} dumped successfully\n`
+        );
       } catch (err) {
-        console.error(`Error dumping database ${connectionObj.dbName}:`, err);
+        fs.appendFileSync(
+          successLog,
+          `Error in dumping database ${connectionObj.dbName}, for more details check error.txt\n`
+        );
+        fs.appendFileSync(
+          errorLog,
+          `Error in dumping database ${connectionObj.dbName}: ${err} of localhost : ${connectionObj.host}\n`
+        );
       } finally {
         await connection.end();
       }
@@ -59,33 +71,39 @@ cron.schedule(
 
     async function deleteFolder() {
       const dumpFolder = await fs.promises.readdir(dir);
-      if (dumpFolder.length > 7) {
+      if (dumpFolder.length > 4) {
         const oldestFolder = dumpFolder[0];
         const oldestFolderPath = path.join(dir, oldestFolder);
         await fs.promises.rm(oldestFolderPath, { recursive: true });
-        console.log(`Folder deleted: ${oldestFolderPath}`);
-      } else {
-        console.log("less than or equal to 7 file");
+        console.log(`Database folder deleted: ${oldestFolderPath}`);
+        fs.appendFileSync(
+          successLog,
+          `Database folder deleted: ${oldestFolderPath}\n`
+        );
       }
     }
 
     async function dumpAllData() {
-      objectIds = ["65e9764cb3dcbd32db1542f3", "65e99126b3dcbd32db1542f4"];
-
-      for (let i = 0; i < objectIds.length; i++) {
-        // Fixed the loop condition
-        const connections = await fetchHostUserPassword(objectIds[i]);
-        for (const connectionObj of connections) {
-          await dumpData(connectionObj);
+      let objectId;
+      try {
+        for (objectId of objectIds) {
+          const connections = await fetchHostUserPassword(objectId);
+          for (const connectionObj of connections) {
+            await dumpData(connectionObj);
+          }
+        }
+      } catch (err) {
+        if (objectId) {
+          fs.appendFileSync(
+            errorLog,
+            `Error in getting documentId ${objectId} from mongo document: ${err}\n`
+          );
+        } else {
+          fs.appendFileSync(errorLog, `Error occurred: ${err}\n`);
         }
       }
     }
-
-    console.log(
-      "-----------------------------------------------------------------"
-    );
     await dumpAllData();
-    console.log("..........................DELETION........................");
     await deleteFolder();
   },
   {
