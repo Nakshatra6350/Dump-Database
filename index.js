@@ -13,7 +13,7 @@ const {
 const getFolderPath = require("./dateAndTime.js");
 
 cron.schedule(
-  "* * * * *",
+  "0 0 * * *",
   async () => {
     const dir = databaseDir();
     const successLog = successLogFunc();
