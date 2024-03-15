@@ -10,7 +10,7 @@ const {
   successLogFunc,
   errorLogFunc,
 } = require("./directories.js");
-const getFolderPath = require("./dateAndTime.js");
+const getTodayDate = require("./dateAndTime.js");
 
 cron.schedule(
   "0 0 * * *",
@@ -20,8 +20,8 @@ cron.schedule(
     const errorLog = errorLogFunc();
     const objectIds = await getObjectId();
 
-    const time = getFolderPath();
-    const folderPath = `${dir}/${time}`;
+    const date = getTodayDate();
+    const folderPath = `${dir}/${date}`;
 
     async function dumpData(connectionObj) {
       const connection = await mysql.createConnection({
